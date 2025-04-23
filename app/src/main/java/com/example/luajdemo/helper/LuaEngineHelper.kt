@@ -2,6 +2,7 @@ package com.example.luajdemo.helper
 
 import android.util.Log
 import org.luaj.vm2.Globals
+import org.luaj.vm2.LuaError
 import org.luaj.vm2.LuaValue
 
 private const val TAG = "LuaEngineHelper"
@@ -43,4 +44,23 @@ fun Any?.luaValue(): LuaValue = when (this) {
     }
 
     else -> LuaValue.valueOf(this.toString())
+}
+
+fun Globals.getStackTrace(error: LuaError): String {
+    return try {
+        // Get the debug library
+        val debug = get("debug")
+        if (debug == LuaValue.NIL) {
+            return "Failed to get debug library"
+        }
+        val entryPathValue = get("entryPath")
+        val entryPath =
+            if (entryPathValue == LuaValue.NIL) ""
+            else entryPathValue.tojstring().trimEnd('/') + '/'
+        // Call traceback with the error message
+        val trace = debug.get("traceback").call(LuaValue.valueOf(error.message ?: ""))
+        trace.tojstring().replace(entryPath, "")
+    } catch (e: Exception) {
+        "Failed to get stack trace: ${e.message}"
+    }
 }

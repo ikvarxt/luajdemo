@@ -2,6 +2,7 @@ package com.example.luajdemo
 
 import android.util.Log
 import com.example.luajdemo.helper.addPathForEntry
+import com.example.luajdemo.helper.getStackTrace
 import com.example.luajdemo.helper.luaValue
 import org.luaj.vm2.Globals
 import org.luaj.vm2.LuaError
@@ -34,12 +35,12 @@ class LuaEngineImpl : LuaEngine {
 
     override fun initialize() {
         runtime = JsePlatform.debugGlobals()
-        runtime["error"] = LuaValue.valueOf("debug.traceback")
     }
 
     override fun loadEntryFile(path: File): Result<Unit> = runCatching {
         with(runtime) {
             entryPath = path.parent!!
+            set("entryPath", entryPath)
             addPathForEntry(entryPath)
             loadfile(path.absolutePath).call()
         }
@@ -47,7 +48,11 @@ class LuaEngineImpl : LuaEngine {
 
     override fun executeFunction(func: String, vararg args: Any?): Result<Varargs> = runCatching {
         val luaArgs = args.map { it.luaValue() }.toTypedArray()
-        runtime.get(func).invoke(luaArgs)
+        try {
+            runtime.get(func).invoke(luaArgs)
+        } catch (e: LuaError) {
+            throw Error(runtime.getStackTrace(e))
+        }
     }
 
     override fun executeFunctionSuppress(func: String, vararg args: Any?): Varargs {
@@ -55,7 +60,7 @@ class LuaEngineImpl : LuaEngine {
         return try {
             runtime.get(func).invoke(luaArgs)
         } catch (e: LuaError) {
-            Log.e(TAG, "executeFunction: ${getStackTrace(e)}")
+            Log.e(TAG, "executeFunction: ${runtime.getStackTrace(e)}")
             LuaValue.NIL
         }
     }
@@ -64,16 +69,5 @@ class LuaEngineImpl : LuaEngine {
         lib.forEach { runtime.load(it) }
     }
 
-    private fun getStackTrace(error: LuaError): String {
-        return try {
-            // Get the debug library
-            val debug = runtime.get("debug")
-            // Call traceback with the error message
-            val trace = debug.get("traceback").call(LuaValue.valueOf(error.message ?: ""))
-            trace.tojstring().replace("$entryPath/", "")
-        } catch (e: Exception) {
-            "Failed to get stack trace: ${e.message}"
-        }
-    }
 
 }
