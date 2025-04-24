@@ -34,3 +34,14 @@ function getMyTable()
   }
   return t
 end
+
+function testEventBus()
+  local eventbus = require 'eventbus'
+
+  eventbus.post('testEvent', {
+    data = 'abcdabcd',
+  })
+  eventbus.register('ping', function(arg)
+    android.loginfo('lua', arg)
+  end)
+end

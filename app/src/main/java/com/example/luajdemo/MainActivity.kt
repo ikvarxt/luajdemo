@@ -2,16 +2,21 @@ package com.example.luajdemo
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.buildSpannedString
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.luajdemo.helper.copyToExternal
 import com.example.luajdemo.helper.luaTableToKotlin
 import com.example.luajdemo.lualib.AndroidLib
+import com.example.luajdemo.lualib.EventBusLib
 import com.example.luajdemo.lualib.SharedPreferenceLib
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.luaj.vm2.LuaTable
 
 private const val TAG = "MainActivity"
@@ -19,7 +24,7 @@ private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
 
     private lateinit var textView: TextView
-    private val engine = LuaEngineImpl()
+    private val engine: LuaEngine = LuaEngineImpl()
     private val eventBus = initEventBus()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +35,8 @@ class MainActivity : AppCompatActivity() {
         engine.initialize()
         engine.loadLib(
             AndroidLib(this.applicationContext),
-            SharedPreferenceLib(this.applicationContext)
+            SharedPreferenceLib(this.applicationContext),
+            EventBusLib(eventBus),
         )
 
         engine.loadEntryFile(externalFile().resolve("lua").resolve("main.lua"))
@@ -51,6 +57,30 @@ class MainActivity : AppCompatActivity() {
                 else appendText(it.toString())
             }
             .onFailure { appendError(it, "getMyTable") }
+
+        lifecycleScope.launch {
+            launch {
+                eventBus.register("testEvent").collect {
+                    appendText(it.toString())
+                }
+            }
+            launch {
+                eventBus.register("ping").collect {
+                    Log.d(TAG, "native ping, ${it.toString()}")
+                }
+            }
+        }
+
+        engine.executeFunction("testEventBus")
+            .onSuccess {
+                lifecycleScope.launch {
+                    repeat(5) {
+                        eventBus.post("ping", "pong")
+                        delay(1000)
+                    }
+                }
+            }
+            .onFailure { appendError(it, "registerEvent") }
 
     }
 
@@ -88,4 +118,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initEventBus() = EventBus()
+
+    override fun onDestroy() {
+        super.onDestroy()
+        engine.destroy()
+    }
+
 }

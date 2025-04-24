@@ -25,11 +25,14 @@ interface LuaEngine {
 
     fun loadLib(vararg lib: LibFunction)
 
+    fun destroy()
+
 }
 
 class LuaEngineImpl : LuaEngine {
 
     private lateinit var runtime: Globals
+    private val loadedLibs: MutableList<LibFunction> = mutableListOf()
 
     private lateinit var entryPath: String
 
@@ -66,8 +69,14 @@ class LuaEngineImpl : LuaEngine {
     }
 
     override fun loadLib(vararg lib: LibFunction) {
+        loadedLibs += lib
         lib.forEach { runtime.load(it) }
     }
 
+    override fun destroy() {
+        loadedLibs.filterIsInstance<AutoCloseable>()
+            .map { it.close() }
+        loadedLibs.clear()
+    }
 
 }
