@@ -10,6 +10,8 @@ import com.example.luajdemo.helper.copyToExternal
 import com.example.luajdemo.lualib.AndroidLib
 import com.example.luajdemo.lualib.SharedPreferenceLib
 
+private const val TAG = "MainActivity"
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var textView: TextView
@@ -49,9 +51,10 @@ class MainActivity : AppCompatActivity() {
     private fun externalFile() = getExternalFilesDir(null)!!
 
     private fun copyAssets() {
-        assets.copyToExternal(
-            "lua",
-            getExternalFilesDir(null)!!.resolve("lua")
-        )
+        val targetFile = getExternalFilesDir(null)!!.resolve("lua")
+        if (targetFile.exists()) {
+            targetFile.deleteRecursively()
+        }
+        assets.copyToExternal("lua", targetFile)
     }
 }
