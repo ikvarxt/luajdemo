@@ -34,9 +34,7 @@ class AndroidLib(
     inner class externalFilePath : ZeroArgFunction() {
         override fun call(): LuaValue {
             val file = context.getExternalFilesDir(null)
-            if (file == null) {
-                return LuaValue.error("no external files dir, SdCard not mounted")
-            }
+                ?: return LuaValue.error("no external files dir, SdCard not mounted")
             return file.luaValue()
         }
     }

@@ -13,19 +13,12 @@ fun Globals.addPathForEntry(entryPath: String) {
     val newPaths = listOf(
         path,
         "$entryPath/?.lua",
-        // "$entryPath/?/?.lua",
-        // "$entryPath/*/?.lua"
     )
     val resPath = newPaths.joinToString(";")
     Log.d(TAG, "addPathForEntry $resPath")
     luaPackage.set("path", LuaValue.valueOf(resPath))
 }
 
-/**
- * 将 Kotlin 对象转换为 Lua 值。
- * @param value 要转换的对象
- * @return 转换后的 Lua 值
- */
 fun Any?.luaValue(): LuaValue = when (this) {
     null -> LuaValue.NIL
     is String -> LuaValue.valueOf(this)
@@ -35,11 +28,13 @@ fun Any?.luaValue(): LuaValue = when (this) {
     is Boolean -> LuaValue.valueOf(this)
     is Long -> LuaValue.valueOf(this.toDouble())
     is Number -> LuaValue.valueOf(this.toDouble())
+
     is Map<*, *> -> LuaValue.tableOf().apply {
         this@luaValue.forEach { (k, v) -> set(k.toString(), v.luaValue()) }
     }
 
     is List<*> -> LuaValue.tableOf().apply {
+        // lua index starts from 1
         this@luaValue.forEachIndexed { index, v -> set(index + 1, v.luaValue()) }
     }
 
