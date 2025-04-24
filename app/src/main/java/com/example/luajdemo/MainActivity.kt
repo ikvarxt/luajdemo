@@ -8,6 +8,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.luajdemo.helper.copyToExternal
 import com.example.luajdemo.lualib.AndroidLib
+import com.example.luajdemo.lualib.SharedPreferenceLib
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,13 +21,16 @@ class MainActivity : AppCompatActivity() {
         copyAssets()
 
         engine.initialize()
-        engine.loadLib(AndroidLib(this.applicationContext))
+        engine.loadLib(
+            AndroidLib(this.applicationContext),
+            SharedPreferenceLib(this.applicationContext)
+        )
 
         engine.loadEntryFile(externalFile().resolve("lua").resolve("main.lua"))
             .onFailure { textView.text = "load: " + it.stackTraceToString() }
             .onFailure { return }
 
-        engine.executeFunction("hello")
+        engine.executeFunction("test_sp")
             .onSuccess { textView.text = it.toString() }
             .onFailure { textView.text = "call: " + it.stackTraceToString() }
     }
