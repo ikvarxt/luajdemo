@@ -1,5 +1,6 @@
 package com.example.luajdemo.lualib
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import org.luaj.vm2.LuaValue
@@ -7,6 +8,7 @@ import org.luaj.vm2.lib.OneArgFunction
 import org.luaj.vm2.lib.TwoArgFunction
 import org.luaj.vm2.lib.ZeroArgFunction
 
+@SuppressLint("UseKtx")
 class SharedPreferenceLib(private val context: Context) : TwoArgFunction() {
 
     private val defaultPrefs: SharedPreferences by lazy {

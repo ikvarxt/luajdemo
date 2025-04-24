@@ -1,9 +1,11 @@
 package com.example.luajdemo
 
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.buildSpannedString
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.luajdemo.helper.copyToExternal
@@ -29,12 +31,17 @@ class MainActivity : AppCompatActivity() {
         )
 
         engine.loadEntryFile(externalFile().resolve("lua").resolve("main.lua"))
-            .onFailure { textView.text = "load: " + it.stackTraceToString() }
+            .onFailure { appendError(it, "load file") }
             .onFailure { return }
 
+        engine.executeFunction("hello")
+            .onSuccess { appendText(it.toString()) }
+            .onFailure { appendError(it, "hello") }
+
         engine.executeFunction("test_sp")
-            .onSuccess { textView.text = it.toString() }
-            .onFailure { textView.text = "call: " + it.stackTraceToString() }
+            .onSuccess { appendText(it.toString()) }
+            .onFailure { appendError(it, "test_sp") }
+
     }
 
     private fun initView() {
@@ -46,6 +53,18 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
+
+    private fun appendText(text: String) {
+        textView.append("$text\n\n")
+    }
+
+    private fun appendError(e: Throwable, msg: String? = null) {
+        val redFontText = buildSpannedString {
+            append("$msg ${e.stackTraceToString()}\n\n")
+            setSpan(android.text.style.ForegroundColorSpan(Color.RED), 0, length, 0)
+        }
+        textView.append(redFontText)
     }
 
     private fun externalFile() = getExternalFilesDir(null)!!
