@@ -9,8 +9,10 @@ import androidx.core.text.buildSpannedString
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.luajdemo.helper.copyToExternal
+import com.example.luajdemo.helper.luaTableToKotlin
 import com.example.luajdemo.lualib.AndroidLib
 import com.example.luajdemo.lualib.SharedPreferenceLib
+import org.luaj.vm2.LuaTable
 
 private const val TAG = "MainActivity"
 
@@ -18,6 +20,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var textView: TextView
     private val engine = LuaEngineImpl()
+    private val eventBus = initEventBus()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +44,13 @@ class MainActivity : AppCompatActivity() {
         engine.executeFunction("test_sp")
             .onSuccess { appendText(it.toString()) }
             .onFailure { appendError(it, "test_sp") }
+
+        engine.executeFunction("getMyTable")
+            .onSuccess {
+                if (it is LuaTable) appendText(luaTableToKotlin(it).toString())
+                else appendText(it.toString())
+            }
+            .onFailure { appendError(it, "getMyTable") }
 
     }
 
@@ -76,4 +86,6 @@ class MainActivity : AppCompatActivity() {
         }
         assets.copyToExternal("lua", targetFile)
     }
+
+    private fun initEventBus() = EventBus()
 }

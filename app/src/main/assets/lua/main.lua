@@ -21,3 +21,16 @@ end
 function remove_sp(key)
   return sp_demo.remove_pref(key)
 end
+
+function getMyTable()
+  local t = {
+    a = 'abc',
+    b = true,
+    [2] = '222',
+    [1] = '111',
+    c = 0.3,
+    d = nil,
+    ccc = 0.4,
+  }
+  return t
+end

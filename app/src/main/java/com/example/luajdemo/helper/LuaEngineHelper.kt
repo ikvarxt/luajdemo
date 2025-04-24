@@ -3,6 +3,7 @@ package com.example.luajdemo.helper
 import android.util.Log
 import org.luaj.vm2.Globals
 import org.luaj.vm2.LuaError
+import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 
 private const val TAG = "LuaEngineHelper"
@@ -39,6 +40,61 @@ fun Any?.luaValue(): LuaValue = when (this) {
     }
 
     else -> LuaValue.valueOf(this.toString())
+}
+
+/**
+ * without table conversion
+ */
+@Suppress("UNCHECKED_CAST")
+fun <T> LuaValue.luaValueToKotlin(): T? {
+    val v = try {
+        when {
+            isnil() -> null as T
+            isboolean() -> toboolean() as T
+            isint() -> toint() as T
+            islong() -> tolong() as T
+            isnumber() -> todouble() as T
+            isstring() -> tojstring() as T
+            else -> null // Return as LuaValue if type is not recognized
+        }
+    } catch (e: Exception) {
+        Log.d(TAG, "luaValueToKotlin: ", e)
+        null
+    }
+    return v
+}
+
+private fun LuaTable.toList(): List<Any?> {
+    val result = mutableListOf<Any?>()
+    for (i in 1..length()) {
+        result.add(get(i).luaValueToKotlin())
+    }
+    return result
+}
+
+fun luaTableToKotlin(table: LuaTable): Map<String, Any?> {
+    val result = mutableMapOf<String, Any?>()
+
+    // Convert array-like part (1-based index)
+    val listPart = table.toList()
+    result["_array"] = listPart
+
+//    Log.d(TAG, "luaTableToKotlin: listPart=$listPart")
+
+    // Convert hash part
+    val keys = table.keys()
+    for (j in keys.indices) {
+        val key = keys[j]
+        if (key.isnumber() && key.checkint() in 1..listPart.size) continue
+        val k = key.luaValueToKotlin<String?>()
+        if (k == null) {
+            Log.d(TAG, "luaTableToKotlin: key is not string, ignore, $k")
+            continue
+        }
+        result[k] = table[key].luaValueToKotlin()
+    }
+
+    return result
 }
 
 fun Globals.getStackTrace(error: LuaError): String {
