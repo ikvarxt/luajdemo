@@ -45,11 +45,29 @@ function readAndroidFile()
   local externalPath = android.externalFilePath()
   local fullPath = externalPath .. '/lua/text.lua'
   local textLua = io.open(fullPath, 'r')
-  eventbus.post('ui', { data = 'not found file ' .. fullPath })
   if textLua == nil then
+    eventbus.post('ui', { data = 'not found file ' .. fullPath })
     return
   end
   local t = textLua:read '*a'
   textLua:close()
   eventbus.post('ui', { data = t })
+end
+
+function TEST_JSON_ENCODE()
+  local json = require 'lib.json'
+
+  local t = {
+    'a',
+    'bbb',
+    'ccc',
+    'ddd',
+  }
+  return json.encode(t)
+end
+
+function TEST_JSON_DECODE()
+  local json = require 'lib.json'
+  local j = '{"a":"abc", "b": true}'
+  return json.decode(j)
 end

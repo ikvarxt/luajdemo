@@ -84,6 +84,15 @@ class MainActivity : AppCompatActivity() {
 
         engine.executeFunction("readAndroidFile")
             .onFailure { appendError(it, "readAndroidFile") }
+
+        engine.executeFunction("TEST_JSON_ENCODE")
+            .onSuccess { appendText(it.toString()) }
+            .onFailure { appendError(it, "TEST_JSON_ENCODE") }
+
+        engine.executeFunction("TEST_JSON_DECODE")
+            .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
+            .onFailure { appendError(it, "TEST_JSON_DECODE") }
+
     }
 
     private fun initView() {
