@@ -44,4 +44,10 @@ function testEventBus()
   eventbus.register('ping', function(arg)
     android.loginfo('lua', arg)
   end)
+
+  for i = 1, 10 do
+    eventbus.post('testEvent', {
+      data = 'text from lua i=' .. i,
+    })
+  end
 end

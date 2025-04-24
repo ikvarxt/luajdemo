@@ -77,7 +77,9 @@ fun luaTableToKotlin(table: LuaTable): Map<String, Any?> {
 
     // Convert array-like part (1-based index)
     val listPart = table.toList()
-    result["_array"] = listPart
+    if (listPart.isNotEmpty()) {
+        result["_array"] = listPart
+    }
 
 //    Log.d(TAG, "luaTableToKotlin: listPart=$listPart")
 
