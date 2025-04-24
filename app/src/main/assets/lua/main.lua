@@ -5,6 +5,7 @@ android.loginfo('lua', 'hello world')
 
 local util = require 'helper.util'
 local sp_demo = require 'sp_demo'
+local eventbus = require 'eventbus'
 
 function hello()
   return util.factorial4()
@@ -12,14 +13,6 @@ end
 
 function test_sp()
   return sp_demo.sp_demo()
-end
-
-function clear_sp()
-  return sp_demo.clear_prefs()
-end
-
-function remove_sp(key)
-  return sp_demo.remove_pref(key)
 end
 
 function getMyTable()
@@ -36,18 +29,27 @@ function getMyTable()
 end
 
 function testEventBus()
-  local eventbus = require 'eventbus'
-
-  eventbus.post('testEvent', {
-    data = 'abcdabcd',
-  })
+  eventbus.post('ui', { data = 'abcdabcd' })
   eventbus.register('ping', function(arg)
     android.loginfo('lua', arg)
   end)
 
-  for i = 1, 10 do
-    eventbus.post('testEvent', {
+  for i = 1, 2 do
+    eventbus.post('ui', {
       data = 'text from lua i=' .. i,
     })
   end
+end
+
+function readAndroidFile()
+  local externalPath = android.externalFilePath()
+  local fullPath = externalPath .. '/lua/text.lua'
+  local textLua = io.open(fullPath, 'r')
+  eventbus.post('ui', { data = 'not found file ' .. fullPath })
+  if textLua == nil then
+    return
+  end
+  local t = textLua:read '*a'
+  textLua:close()
+  eventbus.post('ui', { data = t })
 end

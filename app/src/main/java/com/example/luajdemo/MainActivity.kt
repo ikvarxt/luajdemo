@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             launch {
-                eventBus.register("testEvent").collect {
+                eventBus.register("ui").collect {
                     appendText(it.toString())
                 }
             }
@@ -82,6 +82,8 @@ class MainActivity : AppCompatActivity() {
             }
             .onFailure { appendError(it, "registerEvent") }
 
+        engine.executeFunction("readAndroidFile")
+            .onFailure { appendError(it, "readAndroidFile") }
     }
 
     private fun initView() {
