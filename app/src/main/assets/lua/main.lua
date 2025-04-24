@@ -71,3 +71,13 @@ function TEST_JSON_DECODE()
   local j = '{"a":"abc", "b": true}'
   return json.decode(j)
 end
+
+function TEST_FILE_TO_JSON()
+  local json = require 'lib.json'
+  local file = require 'lib.file'
+
+  local content = file.getExternalFileContent 'lua/resource/t.json'
+  eventbus.post('ui', { content = content })
+
+  return json.decode(content)
+end

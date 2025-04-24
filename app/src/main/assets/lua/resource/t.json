@@ -1,0 +1,8 @@
+{
+  "abc": "ccc",
+  "bool": true,
+  "num": 3.14,
+  "obj": {
+    "ab": "a"
+  }
+}

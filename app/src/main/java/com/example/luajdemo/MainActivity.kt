@@ -93,6 +93,10 @@ class MainActivity : AppCompatActivity() {
             .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
             .onFailure { appendError(it, "TEST_JSON_DECODE") }
 
+        engine.executeFunction("TEST_FILE_TO_JSON")
+            .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
+            .onFailure { appendError(it, "TEST_FILE_TO_JSON") }
+
     }
 
     private fun initView() {
