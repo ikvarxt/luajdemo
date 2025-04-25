@@ -88,6 +88,7 @@ fun luaTableToKotlin(table: LuaTable): Map<String, Any?> {
     for (j in keys.indices) {
         val key = keys[j]
         if (key.isnumber() && key.checkint() in 1..listPart.size) continue
+        // TODO: 4/25/2025 ClassCastException when table has an invalid sequence array
         val k = key.luaValueToKotlin<String?>()
         if (k == null) {
             Log.d(TAG, "luaTableToKotlin: key is not string, ignore, $k")
