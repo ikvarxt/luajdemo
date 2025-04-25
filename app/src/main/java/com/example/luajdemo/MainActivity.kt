@@ -97,6 +97,23 @@ class MainActivity : AppCompatActivity() {
             .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
             .onFailure { appendError(it, "TEST_FILE_TO_JSON") }
 
+        engine.executeScript("android.loginfo('luaa', 'hello world')")
+            .onSuccess { appendText("loged hello world") }
+            .onFailure { appendError(it, "executeScript") }
+
+        data class TestClass(val name: String, var age: Int) {
+            fun hello() = "hello from test class, $name, age=$age"
+        }
+
+        val t = TestClass("abc", 12)
+
+        engine.injectInstance("testClass", t)
+
+        engine.executeScript("return { h = testClass:hello(), a = testClass.age }")
+            .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
+            .onFailure { appendError(it, "executeScript") }
+
+
     }
 
     private fun initView() {

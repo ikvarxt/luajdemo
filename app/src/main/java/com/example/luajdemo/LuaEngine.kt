@@ -9,6 +9,7 @@ import org.luaj.vm2.LuaError
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.LibFunction
+import org.luaj.vm2.lib.jse.CoerceJavaToLua
 import org.luaj.vm2.lib.jse.JsePlatform
 import java.io.File
 
@@ -20,10 +21,13 @@ interface LuaEngine {
 
     fun loadEntryFile(path: File): Result<Unit>
 
+    fun executeScript(script: String): Result<LuaValue>
+
     fun executeFunction(func: String, vararg args: Any?): Result<Varargs>
     fun executeFunctionSuppress(func: String, vararg args: Any?): Varargs
 
     fun loadLib(vararg lib: LibFunction)
+    fun injectInstance(name: String, instance: Any)
 
     fun destroy()
 
@@ -49,6 +53,10 @@ class LuaEngineImpl : LuaEngine {
         }
     }
 
+    override fun executeScript(script: String): Result<LuaValue> = runCatching {
+        runtime.load(script).call()
+    }
+
     override fun executeFunction(func: String, vararg args: Any?): Result<Varargs> = runCatching {
         val luaArgs = args.map { it.luaValue() }.toTypedArray()
         try {
@@ -71,6 +79,11 @@ class LuaEngineImpl : LuaEngine {
     override fun loadLib(vararg lib: LibFunction) {
         loadedLibs += lib
         lib.forEach { runtime.load(it) }
+    }
+
+    override fun injectInstance(name: String, instance: Any) {
+        Log.d(TAG, "injectInstance: $name")
+        runtime.set(name, CoerceJavaToLua.coerce(instance))
     }
 
     override fun destroy() {
