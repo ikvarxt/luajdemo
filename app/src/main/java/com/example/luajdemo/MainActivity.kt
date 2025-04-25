@@ -111,14 +111,15 @@ class MainActivity : AppCompatActivity() {
 
         engine.executeScript("return { h = testClass:hello(), a = testClass.age }")
             .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
-            .onFailure { appendError(it, "executeScript") }
+            .onFailure { appendError(it, "executeScript get injected class") }
 
-        t.age = 280
+        engine.executeScript("testClass:setAge(280)")
+            .onFailure { appendError(it, "executeScript setAge from lua") }
 
         // note: lua engine can't directly read kotlin field, must through getters
         engine.executeScript("return { h = testClass:hello(), a = testClass:getAge() }")
             .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
-            .onFailure { appendError(it, "executeScript") }
+            .onFailure { appendError(it, "executeScript get injected class property changed") }
 
     }
 
