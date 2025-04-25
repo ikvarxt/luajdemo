@@ -113,6 +113,12 @@ class MainActivity : AppCompatActivity() {
             .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
             .onFailure { appendError(it, "executeScript") }
 
+        t.age = 280
+
+        // note: lua engine can't directly read kotlin field, must through getters
+        engine.executeScript("return { h = testClass:hello(), a = testClass:getAge() }")
+            .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
+            .onFailure { appendError(it, "executeScript") }
 
     }
 
