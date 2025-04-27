@@ -1,11 +1,11 @@
-print 'hello world'
+print('hello world')
 
-local android = require 'android'
+local android = require('android')
 android.loginfo('lua', 'hello world')
 
-local util = require 'helper.util'
-local sp_demo = require 'sp_demo'
-local eventbus = require 'eventbus'
+local util = require('helper.util')
+local sp_demo = require('sp_demo')
+local eventbus = require('eventbus')
 
 function hello()
   return util.factorial4()
@@ -49,13 +49,13 @@ function readAndroidFile()
     eventbus.post('ui', { data = 'not found file ' .. fullPath })
     return
   end
-  local t = textLua:read '*a'
+  local t = textLua:read('*a')
   textLua:close()
   eventbus.post('ui', { data = t })
 end
 
 function TEST_JSON_ENCODE()
-  local json = require 'lib.json'
+  local json = require('lib.json')
 
   local t = {
     'a',
@@ -67,17 +67,23 @@ function TEST_JSON_ENCODE()
 end
 
 function TEST_JSON_DECODE()
-  local json = require 'lib.json'
+  local json = require('lib.json')
   local j = '{"a":"abc", "b": true}'
   return json.decode(j)
 end
 
 function TEST_FILE_TO_JSON()
-  local json = require 'lib.json'
-  local file = require 'lib.file'
+  local json = require('lib.json')
+  local file = require('lib.file')
 
-  local content = file.getExternalFileContent 'lua/resource/t.json'
+  local content = file.getExternalFileContent('lua/resource/t.json')
   eventbus.post('ui', { content = content })
 
   return json.decode(content)
+end
+
+function TEST_CROSS_FOLDER_REQUIRE()
+  local util = require('helper.util')
+
+  print(util.testCrossRequire())
 end

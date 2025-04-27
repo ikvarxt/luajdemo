@@ -121,6 +121,9 @@ class MainActivity : AppCompatActivity() {
             .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
             .onFailure { appendError(it, "executeScript get injected class property changed") }
 
+        engine.executeFunction("TEST_CROSS_FOLDER_REQUIRE")
+            .onFailure { appendError(it, "TEST_CROSS_FOLDER_REQUIRE") }
+
     }
 
     private fun initView() {
