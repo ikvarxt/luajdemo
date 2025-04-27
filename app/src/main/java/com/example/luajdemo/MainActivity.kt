@@ -10,7 +10,7 @@ import androidx.core.text.buildSpannedString
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.luajdemo.helper.copyToExternal
+import com.example.luajdemo.helper.copyTo
 import com.example.luajdemo.helper.luaTableToKotlin
 import com.example.luajdemo.lualib.AndroidLib
 import com.example.luajdemo.lualib.EventBusLib
@@ -30,7 +30,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initView()
-        copyAssets()
+
+        try {
+            copyAssets()
+        } catch (e: Exception) {
+            appendError(e, "copy assets failed")
+            Log.e(TAG, "copy assets failed", e)
+            return
+        }
 
         engine.initialize()
         engine.loadLib(
@@ -156,7 +163,7 @@ class MainActivity : AppCompatActivity() {
         if (targetFile.exists()) {
             targetFile.deleteRecursively()
         }
-        assets.copyToExternal("lua", targetFile)
+        assets.copyTo("lua", targetFile)
     }
 
     private fun initEventBus() = EventBus()
