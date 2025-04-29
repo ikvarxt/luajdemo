@@ -110,6 +110,7 @@ class MainActivity : AppCompatActivity() {
 
         data class TestClass(val name: String, var age: Int) {
             fun hello() = "hello from test class, $name, age=$age"
+            fun passTable(table: LuaTable) = table.get("arg").tojstring()
         }
 
         val t = TestClass("abc", 12)
@@ -127,6 +128,10 @@ class MainActivity : AppCompatActivity() {
         engine.executeScript("return { h = testClass:hello(), a = testClass:getAge() }")
             .onSuccess { appendText(luaTableToKotlin(it as LuaTable).toString()) }
             .onFailure { appendError(it, "executeScript get injected class property changed") }
+
+        engine.executeScript("return testClass:passTable({ arg = 'arg from lua table' })")
+            .onSuccess { appendText(it.toString()) }
+            .onFailure { appendError(it, "pass table") }
 
         engine.executeFunction("TEST_CROSS_FOLDER_REQUIRE")
             .onFailure { appendError(it, "TEST_CROSS_FOLDER_REQUIRE") }
