@@ -34,7 +34,7 @@ class NetworkLib : TwoArgFunction() {
     inner class Get : VarArgFunction() {
 
         override fun invoke(args: Varargs): LuaValue {
-            val url = args.arg(1).tojstring()
+            val url = args.arg(1).checkstring().tojstring()
             val params = args.arg(2)
 
             val req = Request.Builder()
@@ -46,6 +46,13 @@ class NetworkLib : TwoArgFunction() {
             client.newCall(req).execute().use { response ->
                 return response.body?.string().luaValue()
             }
+        }
+    }
+
+    inner class Post : VarArgFunction() {
+
+        override fun invoke(args: Varargs?): Varargs {
+            return super.invoke(args)
         }
     }
 

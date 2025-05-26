@@ -2,8 +2,11 @@ package com.example.luajdemo.lualib
 
 import com.example.luajdemo.BaseEngineTest
 import com.example.luajdemo.LuaEngine
+import org.luaj.vm2.LuaError
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class NetworkLibTest : BaseEngineTest() {
@@ -13,10 +16,33 @@ class NetworkLibTest : BaseEngineTest() {
     }
 
     @Test
+    fun `json without load json`() {
+        assertFails {
+            val r = run(
+                """
+                local json = require('json')
+                return json
+            """.trimIndent()
+            )
+            assertTrue(r.istable())
+            val jsonLib = r.checktable()
+            assertTrue(jsonLib.get("encode").isfunction())
+            assertTrue(jsonLib.get("decode").isfunction())
+        }
+    }
+
+    @Test
     fun `check network lib exists`() {
         val result = run("return network")
         assertTrue(result.istable())
         assertTrue(result.get("get").isfunction())
+    }
+
+    @Test
+    fun `get with no args`() {
+        assertFailsWith<LuaError> {
+            run("return network.get()")
+        }
     }
 
     @Test
