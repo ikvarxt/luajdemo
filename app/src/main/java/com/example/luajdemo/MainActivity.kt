@@ -39,6 +39,10 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        luaEngineRun()
+    }
+
+    private fun luaEngineRun() {
         engine.initialize()
         engine.loadLib(
             AndroidLib(this.applicationContext),
