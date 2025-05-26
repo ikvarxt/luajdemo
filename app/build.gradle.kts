@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     testImplementation(libs.junit)
+    testImplementation(kotlin("test"))
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
