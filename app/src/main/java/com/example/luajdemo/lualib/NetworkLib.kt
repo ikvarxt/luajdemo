@@ -2,8 +2,12 @@ package com.example.luajdemo.lualib
 
 import com.example.luajdemo.helper.luaValue
 import okhttp3.Headers
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
@@ -19,6 +23,7 @@ class NetworkLib : TwoArgFunction() {
         val lib = LuaValue.tableOf()
 
         lib.set("get", Get())
+        lib.set("post", Post())
 
         env.set("network", lib)
         env.get("package").get("loaded").set("network", lib)
@@ -33,7 +38,7 @@ class NetworkLib : TwoArgFunction() {
 
     inner class Get : VarArgFunction() {
 
-        override fun invoke(args: Varargs): LuaValue {
+        override fun invoke(args: Varargs): Varargs {
             val url = args.arg(1).checkstring().tojstring()
             val params = args.arg(2)
 
@@ -43,16 +48,23 @@ class NetworkLib : TwoArgFunction() {
                 .headers(params.parseHeaders())
                 .build()
 
-            client.newCall(req).execute().use { response ->
-                return response.body?.string().luaValue()
-            }
+            return client.newCall(req).execute().parseResult()
         }
     }
 
     inner class Post : VarArgFunction() {
 
-        override fun invoke(args: Varargs?): Varargs {
-            return super.invoke(args)
+        override fun invoke(args: Varargs): Varargs {
+            val url = args.arg(1).checkstring().tojstring()
+            val params = args.arg(2)
+
+            val req = Request.Builder()
+                .url(url)
+                .method("POST", params.parseRequestBody())
+                .headers(params.parseHeaders())
+                .build()
+
+            return client.newCall(req).execute().parseResult()
         }
     }
 
@@ -71,5 +83,30 @@ class NetworkLib : TwoArgFunction() {
         return headersBuilder.build()
     }
 
+    private fun LuaValue.parseRequestBody(): RequestBody? {
+        val requestBody: RequestBody
+        val paramsTable = if (istable()) checktable() else tableOf()
+        val bodyValue = paramsTable.get("body")
+        if (bodyValue.isstring()) {
+            requestBody = bodyValue.checkjstring().toRequestBody("application/json".toMediaTypeOrNull())
+        } else {
+            argerror("no body provided in post request")
+            return null
+        }
+        return requestBody
+    }
+
+    private fun Response?.parseResult(): Varargs = use {
+        if (this == null) {
+            return LuaValue.NIL
+        }
+        if (isSuccessful.not()) {
+            return error("failed code: $code, message: $message")
+        }
+        val resString = body?.string()
+        if (resString.isNullOrEmpty()) {
+            return LuaValue.NIL
+        } else resString.luaValue()
+    }
 
 }
