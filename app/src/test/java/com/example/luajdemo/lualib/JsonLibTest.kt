@@ -2,16 +2,15 @@ package com.example.luajdemo.lualib
 
 import com.example.luajdemo.BaseEngineTest
 import com.example.luajdemo.LuaEngine
-import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class JsonLibTest : BaseEngineTest() {
 
     override fun onInitialize(engine: LuaEngine) {
-        val file = javaClass.classLoader?.getResource("json.lua")?.file?.let { File(it) }
-            ?: throw IllegalStateException("json.lua not found")
-        engine.loadLib(JsonLib(file))
+//        val file = javaClass.classLoader?.getResource("json.lua")?.file?.let { File(it) }
+//            ?: throw IllegalStateException("json.lua not found")
+//        engine.loadLib(JsonLib(file))
     }
 
     @Test
@@ -35,6 +34,17 @@ class JsonLibTest : BaseEngineTest() {
         )
         assertTrue(res.checkjstring().contains("abc"))
         assertTrue(res.checkjstring().contains("true"))
+    }
+
+    @Test
+    fun `decode json`() {
+        val res = run(
+            """
+            local json = require('json')
+            return json.decode('{"a":"abc", "b": true, "c": 123, "d": null, "e": 3.14}')
+            """.trimIndent()
+        )
+        assertTrue(res.istable(), res.toString())
     }
 
 }
