@@ -126,7 +126,7 @@ class NetworkLibTest : BaseEngineTest() {
             local r, e = http.request('$base/status/404')
             assert(r == nil)
             return e
-        """.trimIndent()
+            """.trimIndent()
         )
         assertFailedStatusCode(getR, 404)
 
