@@ -18,7 +18,7 @@ class NetworkLibTest : BaseEngineTest() {
     }
 
     @Test
-    fun `check network lib exists`() {
+    fun `check http lib exists`() {
         val result = run("return http")
         assertTrue(result.istable())
         assertTrue(result.get("request").isfunction())

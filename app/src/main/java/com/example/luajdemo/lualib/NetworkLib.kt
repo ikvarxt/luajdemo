@@ -22,8 +22,6 @@ class NetworkLib : TwoArgFunction() {
         initializeOkhttpClient()
         val lib = LuaValue.tableOf()
 
-        lib.set("get", Get())
-        lib.set("post", Post())
         lib.set("request", HttpRequest())
 
         env.set("http", lib)
@@ -58,42 +56,6 @@ class NetworkLib : TwoArgFunction() {
                     .url(url)
                     .method(method, body)
                     .headers(headers)
-                    .build()
-
-                return client.newCall(req).execute().parseResult()
-            } catch (e: Exception) {
-                return error(e.message ?: "unknown error")
-            }
-        }
-    }
-
-    inner class Get : VarArgFunction() {
-
-        override fun invoke(args: Varargs): Varargs {
-            val url = args.arg(1).checkstring().tojstring()
-            val params = args.arg(2)
-
-            val req = Request.Builder()
-                .url(url)
-                .method("GET", null)
-                .headers(params.parseHeaders())
-                .build()
-
-            return client.newCall(req).execute().parseResult()
-        }
-    }
-
-    inner class Post : VarArgFunction() {
-
-        override fun invoke(args: Varargs): Varargs {
-            val url = args.arg(1).checkstring().tojstring()
-            val params = args.arg(2)
-
-            try {
-                val req = Request.Builder()
-                    .url(url)
-                    .method("POST", params.parseRequestBody())
-                    .headers(params.parseHeaders())
                     .build()
 
                 return client.newCall(req).execute().parseResult()
