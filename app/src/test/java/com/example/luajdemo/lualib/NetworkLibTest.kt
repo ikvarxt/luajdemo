@@ -3,6 +3,7 @@ package com.example.luajdemo.lualib
 import com.example.luajdemo.BaseEngineTest
 import com.example.luajdemo.LuaEngine
 import org.luaj.vm2.LuaError
+import org.luaj.vm2.LuaValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -18,9 +19,9 @@ class NetworkLibTest : BaseEngineTest() {
 
     @Test
     fun `check network lib exists`() {
-        val result = run("return network")
+        val result = run("return http")
         assertTrue(result.istable())
-        assertTrue(result.get("get").isfunction())
+        assertTrue(result.get("request").isfunction())
     }
 
     // region get
@@ -28,15 +29,15 @@ class NetworkLibTest : BaseEngineTest() {
     @Test
     fun `get with no args`() {
         assertFailsWith<LuaError> {
-            run("return network.get()")
+            run("return http.request()")
         }
     }
 
     @Test
-    fun `simple get request`() {
+    fun `simple get request, default method get`() {
         val res = run(
             """
-            return network.get('$base/get')
+            return http.request('$base/get')
             """.trimIndent()
         )
         assertTrue(res.checkjstring().contains("$base/get"))
@@ -47,7 +48,7 @@ class NetworkLibTest : BaseEngineTest() {
         val res = run(
             """
             local json = require('json')
-            local r = network.get('$base/get', { headers = { a = 'a', b = 'b' }})
+            local r = http.request({ url = '$base/get', headers = { a = 'a', b = 'b' }})
             return json.decode(r)
             """.trimIndent()
         )
@@ -64,7 +65,11 @@ class NetworkLibTest : BaseEngineTest() {
     fun `post simple request`() {
         val res = run(
             """
-            return network.post('$base/post', {body = 'my lua request body'})
+            return http.request({ 
+                url = '$base/post', 
+                method = "POST", 
+                body = 'my lua request body'
+            })
             """.trimIndent()
         )
         assertTrue(res.checkjstring().contains("$base/post"))
@@ -76,7 +81,12 @@ class NetworkLibTest : BaseEngineTest() {
         val res = run(
             """
             local json = require('json')
-            local r = network.post('$base/post', { body = '', headers = { a = 'a', b = 'b' }})
+            local r = http.request({ 
+                url = '$base/post', 
+                method = 'POST',
+                body = '', 
+                headers = { a = 'a', b = 'b' }
+            })
             return json.decode(r)
             """.trimIndent()
         )
@@ -90,38 +100,73 @@ class NetworkLibTest : BaseEngineTest() {
     @Test
     fun `post with no args`() {
         assertFailsWith<LuaError> {
-            run("return network.post()")
+            run("return http.request({ method = 'POST' })")
+        }
+    }
+
+    @Test
+    fun `post without body`() {
+        assertFailsWith<LuaError> {
+            run("return http.request({ url = '$base/post', method = 'POST' })")
         }
     }
     // endregion
 
     // region status code
+
+    private fun assertFailedStatusCode(r: LuaValue, code: Int) {
+        assertTrue(r.isstring(), "string, $code")
+        assertTrue(r.checkjstring().contains("$code"), "$code")
+    }
+
     @Test
     fun `get with invalid url 404`() {
-        assertFailsWith<LuaError>("get") {
-            run("return network.get('$base/status/404')")
-        }.also {
-            assertEquals("failed code: 404, message: ", it.message)
-        }
-        assertFailsWith<LuaError>("post") {
-            run("return network.post('$base/status/404', { body = '' })")
-        }.also {
-            assertEquals("failed code: 404, message: ", it.message)
-        }
+        val getR = run(
+            """
+            local r, e = http.request('$base/status/404')
+            assert(r == nil)
+            return e
+        """.trimIndent()
+        )
+        assertFailedStatusCode(getR, 404)
+
+        val postR = run(
+            """
+            local r, e = http.request({ 
+                url = '$base/status/404', 
+                method = 'POST',
+                body = '' 
+            })
+            assert(r == nil)
+            return e
+            """.trimIndent()
+        )
+        assertFailedStatusCode(postR, 404)
     }
 
     @Test
     fun `get with status code 500`() {
-        assertFailsWith<LuaError>("get") {
-            run("return network.get('$base/status/500')")
-        }.also {
-            assertEquals("failed code: 500, message: ", it.message)
-        }
-        assertFailsWith<LuaError>("post") {
-            run("return network.post('$base/status/500', { body = '' })")
-        }.also {
-            assertEquals("failed code: 500, message: ", it.message)
-        }
+        val getR = run(
+            """
+            local r, e = http.request('$base/status/500')
+            assert(r == nil)
+            return e
+        """.trimIndent()
+        )
+        assertFailedStatusCode(getR, 500)
+
+        val postR = run(
+            """
+            local r, e = http.request({ 
+                url = '$base/status/500', 
+                method = 'POST',
+                body = '' 
+            })
+            assert(r == nil)
+            return e
+            """.trimIndent()
+        )
+        assertFailedStatusCode(postR, 500)
     }
     // endregion
 }
