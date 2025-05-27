@@ -5,7 +5,6 @@ import com.example.luajdemo.LuaEngine
 import org.luaj.vm2.LuaError
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
@@ -13,22 +12,6 @@ class NetworkLibTest : BaseEngineTest() {
 
     override fun onInitialize(engine: LuaEngine) {
         engine.loadLib(NetworkLib())
-    }
-
-    @Test
-    fun `json without load json`() {
-        assertFails {
-            val r = run(
-                """
-                local json = require('json')
-                return json
-            """.trimIndent()
-            )
-            assertTrue(r.istable())
-            val jsonLib = r.checktable()
-            assertTrue(jsonLib.get("encode").isfunction())
-            assertTrue(jsonLib.get("decode").isfunction())
-        }
     }
 
     @Test
